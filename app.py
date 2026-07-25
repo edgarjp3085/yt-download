@@ -1,11 +1,193 @@
 import streamlit as st
 import yt_dlp
 import os
+import time
+from datetime import datetime
 
 DOWNLOAD_FOLDER = './downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-st.set_page_config(page_title="YT Download", page_icon="⬇️", layout="centered")
+st.set_page_config(page_title="YT Download", page_icon="⬇️", layout="wide", initial_sidebar_state="expanded")
+
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { font-family: 'Inter', sans-serif !important; }
+
+    .stApp { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
+
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 2.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    .main-header h1 {
+        color: white !important;
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+    }
+    .main-header p {
+        color: rgba(255,255,255,0.8) !important;
+        font-size: 1rem !important;
+        margin: 0.3rem 0 0 0 !important;
+    }
+
+    .feature-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .feature-card:hover {
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+    .feature-card h3 { color: #fff !important; font-size: 1.1rem !important; margin-bottom: 0.5rem !important; }
+    .feature-card p { color: rgba(255,255,255,0.6) !important; font-size: 0.85rem !important; }
+
+    .stat-card {
+        background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%);
+        border: 1px solid rgba(102,126,234,0.2);
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+    }
+    .stat-card .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stat-card .stat-label {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .success-card {
+        background: linear-gradient(135deg, rgba(0,210,106,0.1) 0%, rgba(0,180,90,0.1) 100%);
+        border: 1px solid rgba(0,210,106,0.3);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 0.5rem 0;
+    }
+    .error-card {
+        background: linear-gradient(135deg, rgba(255,71,87,0.1) 0%, rgba(255,50,60,0.1) 100%);
+        border: 1px solid rgba(255,71,87,0.3);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin: 0.5rem 0;
+    }
+
+    .download-item {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sidebar-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .quality-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    div[data-testid="stButton"] > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.8rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3) !important;
+    }
+    div[data-testid="stButton"] > button:hover {
+        box-shadow: 0 6px 30px rgba(102, 126, 234, 0.5) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    div[data-testid="stTextInput"] > div > div > input,
+    div[data-testid="stTextArea"] > div > div > textarea {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        color: white !important;
+    }
+    div[data-testid="stTextInput"] > div > div > input:focus,
+    div[data-testid="stTextArea"] > div > div > textarea:focus {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 2px rgba(102,126,234,0.2) !important;
+    }
+
+    div[data-testid="stSelectbox"] > div > div {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        color: white !important;
+    }
+
+    div[data-testid="stRadio"] > div { gap: 0.5rem !important; }
+    div[data-testid="stRadio"] > div > label {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 1rem !important;
+    }
+    div[data-testid="stRadio"] > div > label[data-checked="true"] {
+        background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2)) !important;
+        border-color: #667eea !important;
+    }
+
+    .stTabs [data-baseweb="tab-list"] { gap: 0.5rem !important; }
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 0.6rem 1.5rem !important;
+        color: rgba(255,255,255,0.6) !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+
+    .progress-bar > div > div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    footer { text-align: center; padding: 2rem; color: rgba(255,255,255,0.3); font-size: 0.8rem; }
+</style>
+""", unsafe_allow_html=True)
 
 
 def get_ydl_opts_base(use_cookies=False, browser='chrome'):
@@ -24,22 +206,34 @@ def get_ydl_opts_base(use_cookies=False, browser='chrome'):
     return opts
 
 
-def download_video(link, output_path, index, use_cookies=False, browser='chrome'):
+def get_video_info(url, use_cookies=False, browser='chrome'):
     try:
-        ydl_opts = {
-            **get_ydl_opts_base(use_cookies, browser),
-            'format': 'best',
-            'outtmpl': os.path.join(output_path, f'{index} - %(title)s.%(ext)s'),
-            'noplaylist': True,
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(link, download=True)
-        return info_dict.get('title', 'Video'), None
+        opts = {**get_ydl_opts_base(use_cookies, browser), 'skip_download': True}
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        return info, None
     except Exception as e:
         return None, str(e)
 
 
-def download_audio(link, output_path, index, use_cookies=False, browser='chrome'):
+def download_video(link, output_path, index, quality='best', use_cookies=False, browser='chrome'):
+    try:
+        fmt = {'best': 'best', '1080': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]', '720': 'bestvideo[height<=720]+bestaudio/best[height<=720]', '480': 'bestvideo[height<=480]+bestaudio/best[height<=480]'}.get(quality, 'best')
+        ydl_opts = {
+            **get_ydl_opts_base(use_cookies, browser),
+            'format': fmt,
+            'outtmpl': os.path.join(output_path, f'{index} - %(title)s.%(ext)s'),
+            'merge_output_format': 'mp4',
+            'noplaylist': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(link, download=True)
+        return info_dict.get('title', 'Video'), info_dict.get('thumbnail'), info_dict.get('duration'), None
+    except Exception as e:
+        return None, None, None, str(e)
+
+
+def download_audio(link, output_path, index, audio_quality='192', use_cookies=False, browser='chrome'):
     try:
         ydl_opts = {
             **get_ydl_opts_base(use_cookies, browser),
@@ -48,7 +242,7 @@ def download_audio(link, output_path, index, use_cookies=False, browser='chrome'
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',
+                'preferredquality': audio_quality,
             }],
             'prefer_ffmpeg': True,
             'keepvideo': False,
@@ -56,12 +250,12 @@ def download_audio(link, output_path, index, use_cookies=False, browser='chrome'
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(link, download=True)
-        return info_dict.get('title', 'Audio'), None
+        return info_dict.get('title', 'Audio'), info_dict.get('thumbnail'), info_dict.get('duration'), None
     except Exception as e:
-        return None, str(e)
+        return None, None, None, str(e)
 
 
-def download_playlist(playlist_url, output_path, download_audio=False, use_cookies=False, browser='chrome'):
+def download_playlist(playlist_url, output_path, download_audio=False, quality='best', audio_quality='192', use_cookies=False, browser='chrome'):
     try:
         base = get_ydl_opts_base(use_cookies, browser)
         if download_audio:
@@ -71,107 +265,259 @@ def download_playlist(playlist_url, output_path, download_audio=False, use_cooki
                 'outtmpl': os.path.join(output_path, '%(playlist_index)s - %(title)s.%(ext)s'),
                 'noplaylist': False,
                 'ignoreerrors': True,
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }],
+                'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': audio_quality}],
                 'prefer_ffmpeg': True,
                 'keepvideo': False,
             }
         else:
+            fmt = {'best': 'best', '1080': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]', '720': 'bestvideo[height<=720]+bestaudio/best[height<=720]', '480': 'bestvideo[height<=480]+bestaudio/best[height<=480]'}.get(quality, 'best')
             ydl_opts = {
                 **base,
-                'format': 'best',
+                'format': fmt,
                 'outtmpl': os.path.join(output_path, '%(playlist_index)s - %(title)s.%(ext)s'),
                 'noplaylist': False,
                 'ignoreerrors': True,
+                'merge_output_format': 'mp4',
             }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(playlist_url, download=True)
-        return info_dict.get('title', 'Playlist'), None
+        return info_dict.get('title', 'Playlist'), info_dict.get('entries', []), None
     except Exception as e:
-        return None, str(e)
+        return None, [], str(e)
 
 
-st.title("⬇️ YT Download")
-st.caption("Baixe vídeos e áudios do YouTube")
+def format_duration(seconds):
+    if not seconds: return "--:--"
+    h, r = divmod(int(seconds), 3600)
+    m, s = divmod(r, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
+
+
+def format_views(views):
+    if not views: return "N/A"
+    if views >= 1_000_000: return f"{views/1_000_000:.1f}M"
+    if views >= 1_000: return f"{views/1_000:.1f}K"
+    return str(views)
+
+
+if 'history' not in st.session_state:
+    st.session_state.history = []
+if 'total_downloads' not in st.session_state:
+    st.session_state.total_downloads = 0
+
 
 with st.sidebar:
-    st.markdown("### ⚙️ Configurações")
-    use_cookies = st.checkbox("Usar cookies do navegador", value=False)
-    browser = st.selectbox(
-        "Navegador",
-        ["chrome", "firefox", "edge", "brave", "opera"],
-        disabled=not use_cookies,
-    )
-    st.caption("Ative se aparecer erro de vídeo indisponível. Requer estar logado no navegador.")
-    st.divider()
-    st.markdown("### 📋 Requisitos")
-    st.code("choco install ffmpeg", language="bash")
+    st.markdown("""
+    <div class="sidebar-card">
+        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">⚙️ Configurações</h3>
+    </div>
+    """, unsafe_allow_html=True)
 
-option = st.selectbox(
-    "Escolha uma opção",
-    ["Baixar Vídeos", "Baixar Áudios", "Baixar Playlist"]
-)
+    use_cookies = st.checkbox("🍪 Usar cookies do navegador", value=False)
+    browser = st.selectbox("Navegador", ["chrome", "firefox", "edge", "brave", "opera"], disabled=not use_cookies, index=0)
+    if use_cookies:
+        st.info("Requer estar logado no navegador selecionado.")
 
-if option == "Baixar Vídeos":
-    links = st.text_area("Cole os links dos vídeos (um por linha)")
-    if st.button('⬇️ Baixar Vídeos', use_container_width=True):
+    st.markdown("---")
+
+    st.markdown("""
+    <div class="sidebar-card">
+        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">📊 Estatísticas</h3>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""<div class="stat-card"><div class="stat-number">{st.session_state.total_downloads}</div><div class="stat-label">Downloads</div></div>""", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""<div class="stat-card"><div class="stat-number">{len(st.session_state.history)}</div><div class="stat-label">Arquivos</div></div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("""
+    <div class="sidebar-card">
+        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">📋 Requisitos</h3>
+        <p style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin:0;">FFmpeg necessário para conversão de áudio</p>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.expander("Instalar FFmpeg"):
+        st.code("# Windows\nchoco install ffmpeg\n\n# Ubuntu\nsudo apt install ffmpeg\n\n# macOS\nbrew install ffmpeg", language="bash")
+
+
+st.markdown("""
+<div class="main-header">
+    <h1>⬇️ YT Download</h1>
+    <p>Baixe vídeos e áudios do YouTube com qualidade e estilo</p>
+</div>
+""", unsafe_allow_html=True)
+
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown("""<div class="feature-card"><h3>🎬 Vídeos</h3><p>Baixe em até 1080p com qualidade selecionável</p></div>""", unsafe_allow_html=True)
+with col2:
+    st.markdown("""<div class="feature-card"><h3>🎵 Áudios</h3><p>Extraia e converta para MP3 em alta qualidade</p></div>""", unsafe_allow_html=True)
+with col3:
+    st.markdown("""<div class="feature-card"><h3>📑 Playlists</h3><p>Baixe playlists completas de uma vez</p></div>""", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+
+tab1, tab2, tab3 = st.tabs(["🎬 Baixar Vídeos", "🎵 Baixar Áudios", "📑 Baixar Playlist"])
+
+
+with tab1:
+    col_a, col_b = st.columns([3, 2])
+
+    with col_a:
+        links = st.text_area("Cole os links dos vídeos (um por linha)", height=150, key="video_links", placeholder="https://www.youtube.com/watch?v=...\nhttps://youtu.be/...")
+        quality = st.selectbox("Qualidade do vídeo", ["Melhor", "1080p", "720p", "480p"], key="video_quality")
+
+    with col_b:
+        preview_url = st.text_input("Preview rápido", key="preview_url", placeholder="Cole um link para ver detalhes...")
+        if preview_url:
+            info, err = get_video_info(preview_url, use_cookies, browser)
+            if info:
+                thumb = info.get('thumbnail', '')
+                if thumb:
+                    st.image(thumb, use_container_width=True, caption="")
+                st.markdown(f"**{info.get('title', 'Sem título')}**")
+                meta_col1, meta_col2, meta_col3 = st.columns(3)
+                with meta_col1:
+                    st.caption(f"⏱️ {format_duration(info.get('duration'))}")
+                with meta_col2:
+                    st.caption(f"👁️ {format_views(info.get('view_count'))} views")
+                with meta_col3:
+                    uploader = info.get('uploader', 'N/A')
+                    st.caption(f"👤 {uploader[:15]}")
+            elif err:
+                st.error(f"Erro: {err}")
+
+    if st.button('⬇️ Baixar Vídeos', key="btn_video", use_container_width=True):
         if links:
             links_list = [l.strip() for l in links.split('\n') if l.strip()]
-            progress = st.progress(0, text="Baixando...")
-            results = []
+            q = {'Melhor': 'best', '1080p': '1080', '720p': '720', '480p': '480'}[quality]
+            progress = st.progress(0, text="Preparando...")
+            status_area = st.container()
+
             for i, link in enumerate(links_list):
                 progress.progress((i) / len(links_list), text=f"Baixando {i+1}/{len(links_list)}...")
-                title, error = download_video(link, DOWNLOAD_FOLDER, i+1, use_cookies, browser)
-                if error:
-                    results.append(("❌", link, error))
-                else:
-                    results.append(("✅", link, title))
+                title, thumb, duration, error = download_video(link, DOWNLOAD_FOLDER, i+1, q, use_cookies, browser)
+                with status_area:
+                    if error:
+                        st.markdown(f"""<div class="error-card">❌ <strong>Erro:</strong> {error[:80]}</div>""", unsafe_allow_html=True)
+                    else:
+                        st.session_state.history.append({"title": title, "type": "video", "time": datetime.now().strftime("%H:%M")})
+                        st.session_state.total_downloads += 1
+                        st.markdown(f"""<div class="success-card">✅ <strong>{title[:60]}</strong> ({format_duration(duration)})</div>""", unsafe_allow_html=True)
             progress.progress(1.0, text="Concluído!")
-            st.divider()
-            for icon, link, msg in results:
-                st.write(f"{icon} **{msg}** — {link}")
         else:
-            st.warning("Cole os links dos vídeos no campo acima.")
+            st.warning("Cole pelo menos um link.")
 
-elif option == "Baixar Áudios":
-    links = st.text_area("Cole os links dos vídeos (um por linha)")
-    if st.button('⬇️ Baixar Áudios', use_container_width=True):
+
+with tab2:
+    col_a, col_b = st.columns([3, 2])
+
+    with col_a:
+        links = st.text_area("Cole os links dos vídeos (um por linha)", height=150, key="audio_links", placeholder="https://www.youtube.com/watch?v=...\nhttps://youtu.be/...")
+        audio_quality = st.selectbox("Qualidade do áudio", ["128 kbps", "192 kbps", "256 kbps", "320 kbps"], key="audio_quality")
+
+    with col_b:
+        preview_url = st.text_input("Preview rápido", key="preview_url_audio", placeholder="Cole um link para ver detalhes...")
+        if preview_url:
+            info, err = get_video_info(preview_url, use_cookies, browser)
+            if info:
+                thumb = info.get('thumbnail', '')
+                if thumb:
+                    st.image(thumb, use_container_width=True, caption="")
+                st.markdown(f"**{info.get('title', 'Sem título')}**")
+                meta_col1, meta_col2 = st.columns(2)
+                with meta_col1:
+                    st.caption(f"⏱️ {format_duration(info.get('duration'))}")
+                with meta_col2:
+                    st.caption(f"👤 {info.get('uploader', 'N/A')[:15]}")
+            elif err:
+                st.error(f"Erro: {err}")
+
+    if st.button('⬇️ Baixar Áudios', key="btn_audio", use_container_width=True):
         if links:
             links_list = [l.strip() for l in links.split('\n') if l.strip()]
-            progress = st.progress(0, text="Baixando...")
-            results = []
+            aq = audio_quality.split()[0]
+            progress = st.progress(0, text="Preparando...")
+            status_area = st.container()
+
             for i, link in enumerate(links_list):
                 progress.progress((i) / len(links_list), text=f"Baixando {i+1}/{len(links_list)}...")
-                title, error = download_audio(link, DOWNLOAD_FOLDER, i+1, use_cookies, browser)
-                if error:
-                    results.append(("❌", link, error))
-                else:
-                    results.append(("✅", link, title))
+                title, thumb, duration, error = download_audio(link, DOWNLOAD_FOLDER, i+1, aq, use_cookies, browser)
+                with status_area:
+                    if error:
+                        st.markdown(f"""<div class="error-card">❌ <strong>Erro:</strong> {error[:80]}</div>""", unsafe_allow_html=True)
+                    else:
+                        st.session_state.history.append({"title": title, "type": "audio", "time": datetime.now().strftime("%H:%M")})
+                        st.session_state.total_downloads += 1
+                        st.markdown(f"""<div class="success-card">🎵 <strong>{title[:60]}</strong> ({format_duration(duration)})</div>""", unsafe_allow_html=True)
             progress.progress(1.0, text="Concluído!")
-            st.divider()
-            for icon, link, msg in results:
-                st.write(f"{icon} **{msg}** — {link}")
         else:
-            st.warning("Cole os links dos vídeos no campo acima.")
+            st.warning("Cole pelo menos um link.")
 
-elif option == "Baixar Playlist":
-    download_option = st.radio("Formato:", ["Vídeos", "Áudios"], horizontal=True)
-    playlist_url = st.text_input("Cole o link da playlist")
-    if st.button('⬇️ Baixar Playlist', use_container_width=True):
+
+with tab3:
+    col_a, col_b = st.columns([3, 2])
+
+    with col_a:
+        playlist_url = st.text_input("Link da playlist", key="playlist_url", placeholder="https://www.youtube.com/playlist?list=...")
+        dl_format = st.radio("Formato", ["Vídeos", "Áudios"], horizontal=True, key="pl_format")
+
+        if dl_format == "Vídeos":
+            quality = st.selectbox("Qualidade", ["Melhor", "1080p", "720p", "480p"], key="pl_quality")
+        else:
+            audio_quality = st.selectbox("Qualidade do áudio", ["128 kbps", "192 kbps", "256 kbps", "320 kbps"], key="pl_audio_quality")
+
+    with col_b:
+        preview_url = st.text_input("Preview rápido", key="preview_url_pl", placeholder="Cole o link da playlist...")
+        if preview_url:
+            info, err = get_video_info(preview_url, use_cookies, browser)
+            if info:
+                entries = info.get('entries', [])
+                st.markdown(f"**{info.get('title', 'Playlist')}**")
+                st.caption(f"📋 {len(entries)} vídeos")
+                st.markdown("---")
+                for entry in entries[:5]:
+                    if entry:
+                        st.caption(f"▶ {entry.get('title', 'Video')[:40]} ({format_duration(entry.get('duration'))})")
+                if len(entries) > 5:
+                    st.caption(f"... e mais {len(entries)-5} vídeos")
+            elif err:
+                st.error(f"Erro: {err}")
+
+    if st.button('⬇️ Baixar Playlist', key="btn_playlist", use_container_width=True):
         if playlist_url:
-            with st.spinner("Baixando playlist..."):
-                title, error = download_playlist(
-                    playlist_url, DOWNLOAD_FOLDER,
-                    download_audio=(download_option == "Áudios"),
-                    use_cookies=use_cookies,
-                    browser=browser,
-                )
+            da = dl_format == "Áudios"
+            aq = audio_quality.split()[0] if da else None
+            q = {'Melhor': 'best', '1080p': '1080', '720p': '720', '480p': '480'}.get(quality if not da else 'Melhor', 'best')
+
+            with st.spinner("Carregando playlist..."):
+                title, entries, error = download_playlist(playlist_url, DOWNLOAD_FOLDER, da, q, aq, use_cookies, browser)
+
             if error:
                 st.error(f"Erro: {error}")
             else:
+                st.session_state.history.append({"title": title, "type": "playlist", "time": datetime.now().strftime("%H:%M")})
+                st.session_state.total_downloads += 1
                 st.success(f"Playlist baixada: {title}")
         else:
-            st.warning("Cole o link da playlist no campo acima.")
+            st.warning("Cole o link da playlist.")
+
+
+if st.session_state.history:
+    st.markdown("---")
+    with st.expander("📜 Histórico de Downloads", expanded=False):
+        for item in reversed(st.session_state.history[-10:]):
+            icon = "🎬" if item["type"] == "video" else "🎵" if item["type"] == "audio" else "📑"
+            st.caption(f"{icon} {item['title'][:50]} — {item['time']}")
+
+
+st.markdown("""
+<footer>
+    <p>YT Download © 2026 | Feito com Streamlit + yt-dlp</p>
+</footer>
+""", unsafe_allow_html=True)
