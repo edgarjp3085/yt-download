@@ -100,14 +100,6 @@ st.markdown("""
         gap: 1rem;
     }
 
-    .sidebar-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-    }
-
     .quality-badge {
         display: inline-block;
         padding: 4px 12px;
@@ -307,38 +299,25 @@ if 'total_downloads' not in st.session_state:
 
 
 with st.sidebar:
-    st.markdown("""
-    <div class="sidebar-card">
-        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">⚙️ Configurações</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown("### ⚙️ Configurações")
     use_cookies = st.checkbox("🍪 Usar cookies do navegador", value=False)
     browser = st.selectbox("Navegador", ["chrome", "firefox", "edge", "brave", "opera"], disabled=not use_cookies, index=0)
     if use_cookies:
         st.info("Requer estar logado no navegador selecionado.")
 
-    st.markdown("---")
+    st.divider()
 
-    st.markdown("""
-    <div class="sidebar-card">
-        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">📊 Estatísticas</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown("### 📊 Estatísticas")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"""<div class="stat-card"><div class="stat-number">{st.session_state.total_downloads}</div><div class="stat-label">Downloads</div></div>""", unsafe_allow_html=True)
+        st.metric(label="Downloads", value=st.session_state.total_downloads)
     with col2:
-        st.markdown(f"""<div class="stat-card"><div class="stat-number">{len(st.session_state.history)}</div><div class="stat-label">Arquivos</div></div>""", unsafe_allow_html=True)
+        st.metric(label="Arquivos", value=len(st.session_state.history))
 
-    st.markdown("---")
-    st.markdown("""
-    <div class="sidebar-card">
-        <h3 style="color:#fff;margin:0 0 0.5rem 0;font-size:1rem;">📋 Requisitos</h3>
-        <p style="color:rgba(255,255,255,0.5);font-size:0.8rem;margin:0;">FFmpeg necessário para conversão de áudio</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.divider()
+
+    st.markdown("### 📋 Requisitos")
+    st.caption("FFmpeg necessário para conversão de áudio")
     with st.expander("Instalar FFmpeg"):
         st.code("# Windows\nchoco install ffmpeg\n\n# Ubuntu\nsudo apt install ffmpeg\n\n# macOS\nbrew install ffmpeg", language="bash")
 
