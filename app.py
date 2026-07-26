@@ -303,11 +303,6 @@ def get_ydl_opts_base(use_cookies=False, browser='chrome'):
         'retries': 10,
         'retry_sleep': 10,
         'socket_timeout': 60,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['web'],
-            }
-        },
     }
     if use_cookies:
         opts['cookiesfrombrowser'] = (browser,)
@@ -326,13 +321,20 @@ def get_video_info(url, use_cookies=False, browser='chrome'):
 
 def download_video(link, output_path, index, quality='best', use_cookies=False, browser='chrome'):
     try:
-        fmt = {'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best', '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best', '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best', '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best'}.get(quality, 'best')
+        fmt = {
+            'best': 'bestvideo+bestaudio/best',
+            '1080': 'bestvideo[height<=1080]+bestaudio/bestvideo[height<=1080]/best',
+            '720': 'bestvideo[height<=720]+bestaudio/bestvideo[height<=720]/best',
+            '480': 'bestvideo[height<=480]+bestaudio/bestvideo[height<=480]/best',
+        }.get(quality, 'bestvideo+bestaudio/best')
         ydl_opts = {
             **get_ydl_opts_base(use_cookies, browser),
             'format': fmt,
             'outtmpl': os.path.join(output_path, f'{index} - %(title)s.%(ext)s'),
             'merge_output_format': 'mp4',
             'noplaylist': True,
+            'quiet': True,
+            'no_warnings': True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(link, download=True)
@@ -345,7 +347,7 @@ def download_audio(link, output_path, index, audio_quality='192', use_cookies=Fa
     try:
         ydl_opts = {
             **get_ydl_opts_base(use_cookies, browser),
-            'format': 'bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio',
+            'format': 'bestaudio/best',
             'outtmpl': os.path.join(output_path, f'{index} - %(title)s.%(ext)s'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
@@ -371,7 +373,7 @@ def download_playlist(playlist_url, output_path, download_audio=False, quality='
         if download_audio:
             ydl_opts = {
                 **base,
-                'format': 'bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio',
+                'format': 'bestaudio/best',
                 'outtmpl': os.path.join(output_path, '%(playlist_index)s - %(title)s.%(ext)s'),
                 'noplaylist': False,
                 'ignoreerrors': True,
@@ -382,7 +384,12 @@ def download_playlist(playlist_url, output_path, download_audio=False, quality='
                 'no_warnings': True,
             }
         else:
-            fmt = {'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best', '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best', '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best', '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best'}.get(quality, 'best')
+            fmt = {
+                'best': 'bestvideo+bestaudio/best',
+                '1080': 'bestvideo[height<=1080]+bestaudio/bestvideo[height<=1080]/best',
+                '720': 'bestvideo[height<=720]+bestaudio/bestvideo[height<=720]/best',
+                '480': 'bestvideo[height<=480]+bestaudio/bestvideo[height<=480]/best',
+            }.get(quality, 'bestvideo+bestaudio/best')
             ydl_opts = {
                 **base,
                 'format': fmt,
