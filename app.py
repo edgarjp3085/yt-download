@@ -305,7 +305,7 @@ def get_ydl_opts_base(use_cookies=False, browser='chrome'):
         'socket_timeout': 60,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'ios', 'web'],
+                'player_client': ['web'],
             }
         },
     }
@@ -326,7 +326,7 @@ def get_video_info(url, use_cookies=False, browser='chrome'):
 
 def download_video(link, output_path, index, quality='best', use_cookies=False, browser='chrome'):
     try:
-        fmt = {'best': 'best', '1080': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]', '720': 'bestvideo[height<=720]+bestaudio/best[height<=720]', '480': 'bestvideo[height<=480]+bestaudio/best[height<=480]'}.get(quality, 'best')
+        fmt = {'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best', '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best', '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best', '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best'}.get(quality, 'best')
         ydl_opts = {
             **get_ydl_opts_base(use_cookies, browser),
             'format': fmt,
@@ -355,6 +355,8 @@ def download_audio(link, output_path, index, audio_quality='192', use_cookies=Fa
             'prefer_ffmpeg': True,
             'keepvideo': False,
             'noplaylist': True,
+            'quiet': True,
+            'no_warnings': True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(link, download=True)
@@ -376,9 +378,11 @@ def download_playlist(playlist_url, output_path, download_audio=False, quality='
                 'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': audio_quality}],
                 'prefer_ffmpeg': True,
                 'keepvideo': False,
+                'quiet': True,
+                'no_warnings': True,
             }
         else:
-            fmt = {'best': 'best', '1080': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]', '720': 'bestvideo[height<=720]+bestaudio/best[height<=720]', '480': 'bestvideo[height<=480]+bestaudio/best[height<=480]'}.get(quality, 'best')
+            fmt = {'best': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best', '1080': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best', '720': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best', '480': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best'}.get(quality, 'best')
             ydl_opts = {
                 **base,
                 'format': fmt,
@@ -386,6 +390,8 @@ def download_playlist(playlist_url, output_path, download_audio=False, quality='
                 'noplaylist': False,
                 'ignoreerrors': True,
                 'merge_output_format': 'mp4',
+                'quiet': True,
+                'no_warnings': True,
             }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(playlist_url, download=True)
