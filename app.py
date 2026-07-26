@@ -15,6 +15,16 @@ st.markdown("""
 
     * { font-family: 'Inter', sans-serif !important; }
 
+    /* não sobrescrever a fonte de ícones (Material Symbols), senão o
+       botão de abrir/fechar a sidebar e outros ícones viram texto cru */
+    [data-testid="stIconMaterial"],
+    [data-testid="stIconMaterial"] *,
+    [data-testid="baseButton-headerNoPadding"] span,
+    span[class*="material-icons"],
+    span[class*="material-symbols"] {
+        font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+    }
+
     .stApp { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
 
     .main-header {
@@ -35,6 +45,112 @@ st.markdown("""
         font-size: 1rem !important;
         margin: 0.3rem 0 0 0 !important;
     }
+
+    /* ===== SIDEBAR ===== */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #17142b 0%, #201c3d 100%) !important;
+        border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1.5rem;
+    }
+    section[data-testid="stSidebar"] * {
+        color: rgba(255,255,255,0.85) !important;
+    }
+    section[data-testid="stSidebar"] h3 {
+        color: #fff !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        letter-spacing: 0.3px;
+    }
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.1) !important;
+        margin: 1.2rem 0 !important;
+    }
+
+    /* checkbox */
+    section[data-testid="stSidebar"] div[data-testid="stCheckbox"] label span {
+        color: rgba(255,255,255,0.85) !important;
+    }
+
+    /* selectbox */
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] > div {
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stSelectbox"] svg {
+        fill: rgba(255,255,255,0.7) !important;
+    }
+
+    /* metric cards */
+    section[data-testid="stSidebar"] div[data-testid="stMetric"] {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 0.8rem 0.5rem;
+        text-align: center;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stMetricValue"] {
+        color: #fff !important;
+        font-weight: 700 !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stMetricLabel"] {
+        color: rgba(255,255,255,0.55) !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* info box */
+    section[data-testid="stSidebar"] div[data-testid="stAlert"] {
+        background: rgba(102,126,234,0.15) !important;
+        border: 1px solid rgba(102,126,234,0.3) !important;
+        border-radius: 10px !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stAlert"] * {
+        color: rgba(255,255,255,0.9) !important;
+    }
+
+    /* expander */
+    section[data-testid="stSidebar"] details {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+    }
+    section[data-testid="stSidebar"] summary {
+        color: rgba(255,255,255,0.85) !important;
+    }
+    section[data-testid="stSidebar"] summary svg {
+        fill: rgba(255,255,255,0.7) !important;
+    }
+
+    /* code block */
+    section[data-testid="stSidebar"] pre, section[data-testid="stSidebar"] code {
+        background: rgba(0,0,0,0.35) !important;
+        color: #a5d6ff !important;
+        border-radius: 8px !important;
+    }
+
+    /* caption */
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+        color: rgba(255,255,255,0.55) !important;
+    }
+    /* botão de abrir a sidebar quando ela está fechada (fica sobre o fundo escuro) */
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] span {
+        color: rgba(255,255,255,0.85) !important;
+        fill: rgba(255,255,255,0.85) !important;
+    }
+    /* botão de fechar a sidebar (dentro dela) */
+    [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] svg,
+    [data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"] span {
+        color: rgba(255,255,255,0.85) !important;
+        fill: rgba(255,255,255,0.85) !important;
+    }
+    /* ===== FIM SIDEBAR ===== */
 
     .feature-card {
         background: rgba(255,255,255,0.05);
